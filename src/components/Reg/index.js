@@ -13,7 +13,7 @@ const RegisterVerify = () => {
   const [idName, setIdName] = useState(""); // ID Name o'zgarishi uchun yangi state
   const [isLoading, setIsLoading] = useState("")
   const [clientEmail, clientSetEmail] = useState("");
-  const [alertData, setAlertData] = useState(null);
+  const [alertData, alert] = useState(null);
   const [message, setMessage] = useState("");
   const [additionalInfo, setAdditionalInfo] = useState({
     name: "",
@@ -31,6 +31,15 @@ const RegisterVerify = () => {
   const [filteredQuestions, setFilteredQuestions] = useState([]); // To store filtered questions based on selectedID
   const router = useRouter(); // Routerni ishlatish uchun
   const [openModal, setOpenModal] = useState(false); // Modalni boshqarish uchun state
+
+
+  const showSuccessAlert = () => {
+    alert({ type: "success", message: "Операция прошла успешно!" });
+  };
+
+  const showErrorAlert = () => {
+    alert({ type: "error", message: "Произошла ошибка!" });
+  };
 
   const handleModalClose = () => {
     setOpenModal(false); // Modalni yopish
@@ -104,12 +113,12 @@ const RegisterVerify = () => {
       const response = await axios.post("https://farxunda-khadji.uz/api/register", { email, password });
   
       if (response.data.success) {
-        setAlertData({ type: "success", message: "На вашу почту отправлен ID. Пожалуйста, подтвердите." });
+        alert({ type: "success", message: "На вашу почту отправлен ID. Пожалуйста, подтвердите." });
         setIsRegistered(true);
       }
     } catch (error) {
       console.error(error);
-      setAlertData({ type: "error", message: "Произошла ошибка при регистрации." });
+      alert({ type: "error", message: "Произошла ошибка при регистрации." });
     }
   };
   
@@ -121,13 +130,13 @@ const RegisterVerify = () => {
       if (response.data.success) {
         setIdVerified(true);
         setOpenModal(true); // Открыть модальное окно
-        setAlertData({ type: "success", message: "ID подтвержден успешно!" });
+        alert({ type: "success", message: "ID подтвержден успешно!" });
       } else {
-        setAlertData({ type: "error", message: "Неверный ID. Попробуйте снова." });
+        alert({ type: "error", message: "Неверный ID. Попробуйте снова." });
       }
     } catch (error) {
       console.error(error);
-      setAlertData({ type: "error", message: "Ошибка при проверке ID." });
+      alert({ type: "error", message: "Ошибка при проверке ID." });
     }
   };
   
@@ -150,7 +159,7 @@ const handleCompleteRegistration = async () => {
   const { name, age, gender, companyName, region } = additionalInfo;
 
   if (!name || !age || !gender || !companyName || !region) {
-    setAlertData({ type: "error", message: "Пожалуйста, заполните все поля." });
+    alert({ type: "error", message: "Пожалуйста, заполните все поля." });
     return;
   }
 
@@ -160,11 +169,11 @@ const handleCompleteRegistration = async () => {
     if (response.data.success) {
       await fetchQuestions(); // Обновление списка вопросов
       setTestStarted(true); // Запуск теста
-      setAlertData({ type: "success", message: "Добро пожаловать на тест!" });
+      alert({ type: "success", message: "Добро пожаловать на тест!" });
     }
   } catch (error) {
     console.error(error);
-    setAlertData({ type: "error", message: "Произошла ошибка при завершении регистрации." });
+    alert({ type: "error", message: "Произошла ошибка при завершении регистрации." });
   }
 };
 
@@ -240,17 +249,17 @@ const handleSubmitTest = async () => {
       }
 
       // Уведомление пользователя об успешной отправке теста
-      setAlertData({ type: "success", message: "Тест успешно отправлен. Ваши результаты будут обработаны." });
+      alert({ type: "success", message: "Тест успешно отправлен. Ваши результаты будут обработаны." });
 
       setTimeout(() => {
         // window.location.href = "http://localhost:3000";
       }, 3000);
     } else {
-      setAlertData({ type: "error", message: "Ошибка при отправке теста. Попробуйте еще раз." });
+      alert({ type: "error", message: "Ошибка при отправке теста. Попробуйте еще раз." });
     }
   } catch (error) {
     console.error("🔴 Ошибка при отправке данных:", error);
-    setAlertData({ type: "error", message: "Произошла ошибка при отправке теста. Попробуйте еще раз." });
+    alert({ type: "error", message: "Произошла ошибка при отправке теста. Попробуйте еще раз." });
   }
 };
 
