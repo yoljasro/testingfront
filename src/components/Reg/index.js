@@ -38,30 +38,30 @@ const RegisterVerify = () => {
 
   const handleVerify = async () => {
     if (!idName) {
-      setMessage("ID Name ni kiritish majburiy!");
+      setMessage("Имя ID обязательно!");
       return;
     }
-
+  
     setIsLoading(true);
-
+  
     try {
-      const response = await axios.get("http://localhost:4000/api/register-client", {
+      const response = await axios.get("https://farxunda-khadji.uz/api/register-client", {
         params: { idName },
       });
-
+  
       if (response.data.success) {
-        setMessage("Success! ID Name mavjud.");
-        setOpenModal(false); // Modalni yopish
+        setMessage("Успешно! ID найден.");
+        setOpenModal(false); // Закрыть модальное окно
       } else {
-        setMessage("ID Name mos kelmadi.");
+        setMessage("ID не найден.");
       }
     } catch (error) {
-      // console.error("Xato yuz berdi:", error);
-      setMessage("Tekshirishda xatolik yuz berdi.");
+      setMessage("Ошибка при проверке ID.");
     } finally {
       setIsLoading(false);
     }
   };
+  
 
 
   // Fetch questions from backend when component mounts
@@ -71,11 +71,11 @@ const RegisterVerify = () => {
 
       // Backend URLni tanlash
       if (selectedID === "1") {
-        apiUrl = "http://localhost:4000/api/test-questions";
+        apiUrl = "https://farxunda-khadji.uz/api/test-questions";
       } else if (selectedID === "2") {
-        apiUrl = "http://localhost:4000/api/test-question-two";
+        apiUrl = "https://farxunda-khadji.uz/api/test-question-two";
       } else if (selectedID === "3") {
-        apiUrl = "http://localhost:4000/api/test-question-three";
+        apiUrl = "https://farxunda-khadji.uz/api/test-question-three";
       }
 
       // Backenddan testlarni olish
@@ -101,32 +101,36 @@ const RegisterVerify = () => {
   // Handle user registration
   const handleRegister = async () => {
     try {
-      const response = await axios.post("http://localhost:4000/api/register", { email, password });
+      const response = await axios.post("https://farxunda-khadji.uz/api/register", { email, password });
+  
       if (response.data.success) {
-        alert("Na вашу почту отправлен ID. Пожалуйста, подтвердите.");
+        setAlertData({ type: "success", message: "На вашу почту отправлен ID. Пожалуйста, подтвердите." });
         setIsRegistered(true);
       }
     } catch (error) {
       console.error(error);
-      alert("Произошла ошибка при регистрации.");
+      setAlertData({ type: "error", message: "Произошла ошибка при регистрации." });
     }
   };
-
+  
   // Handle ID verification
   const handleVerifyID = async () => {
     try {
-      const response = await axios.post("http://localhost:4000/api/verify-id", { email, inputID });
+      const response = await axios.post("https://farxunda-khadji.uz/api/verify-id", { email, inputID });
+  
       if (response.data.success) {
         setIdVerified(true);
-        setOpenModal(true); // Modalni ochish
+        setOpenModal(true); // Открыть модальное окно
+        setAlertData({ type: "success", message: "ID подтвержден успешно!" });
       } else {
-        alert("Неверный ID. Попробуйте снова.");
+        setAlertData({ type: "error", message: "Неверный ID. Попробуйте снова." });
       }
     } catch (error) {
       console.error(error);
-      alert("Ошибка при проверке ID.");
+      setAlertData({ type: "error", message: "Ошибка при проверке ID." });
     }
   };
+  
 
   // Filter questions based on selected ID
   const filterQuestionsByID = (questions) => {
@@ -141,115 +145,114 @@ const RegisterVerify = () => {
   };
 
 
-  // Complete user registration and start test
-  const handleCompleteRegistration = async () => {
-    const { name, age, gender, companyName, region } = additionalInfo;
+ // Завершение регистрации и начало теста
+const handleCompleteRegistration = async () => {
+  const { name, age, gender, companyName, region } = additionalInfo;
 
-    if (!name || !age || !gender || !companyName || !region) {
-      alert("Пожалуйста, заполните все поля.");
-      return;
-    }
+  if (!name || !age || !gender || !companyName || !region) {
+    setAlertData({ type: "error", message: "Пожалуйста, заполните все поля." });
+    return;
+  }
 
-    try {
-      const response = await axios.post("http://localhost:4000/api/complete-registration", { email, ...additionalInfo });
-      if (response.data.success) {
-        // Testlarni yuklash va filtrlash
-        await fetchQuestions(); // Testlarni qayta yuklash
-        setTestStarted(true); // Testni boshlash
-        alert("Добро пожаловать на тест!");
-      }
-    } catch (error) {
-      console.error(error);
-      alert("Произошла ошибка при завершении регистрации.");
+  try {
+    const response = await axios.post("https://farxunda-khadji.uz/api/complete-registration", { email, ...additionalInfo });
+
+    if (response.data.success) {
+      await fetchQuestions(); // Обновление списка вопросов
+      setTestStarted(true); // Запуск теста
+      setAlertData({ type: "success", message: "Добро пожаловать на тест!" });
     }
+  } catch (error) {
+    console.error(error);
+    setAlertData({ type: "error", message: "Произошла ошибка при завершении регистрации." });
+  }
+};
+
+// Обработка ответов пользователя
+const handleTestAnswer = (questionIndex, value) => {
+  setTestResults((prevResults) => ({
+    ...prevResults,
+    [filteredQuestions[questionIndex]._id]: value, // Сохранение ответа с ID вопроса
+  }));
+};
+
+const handleSubmitTest = async () => {
+  // Форматирование данных для TestQuestionTwo
+  const formattedTestResults = Object.keys(testResults).map((questionId) => ({
+    questionId,
+    answer: testResults[questionId],
+  }));
+
+  // Форматирование данных для TestQuestionThree (Белбин тест)
+  const formattedTestResultsThree = Object.entries(testResultsThree).map(([questionId, answer]) => ({
+    questionId: questionId.trim(),
+    answer: answer.trim(),
+  }));
+
+  const payload = {
+    email,
+    password,
+    name: additionalInfo.name,
+    age: additionalInfo.age,
+    gender: additionalInfo.gender,
+    companyName: additionalInfo.companyName,
+    region: additionalInfo.region,
+    selectedID: additionalInfo.selectedID,
+    testResult: formattedTestResults, // Результаты TestQuestionTwo
+    testResultThree: formattedTestResultsThree, // Результаты TestQuestionThree
+    idName: idName,
   };
 
-  // Handle test answers selection
-  const handleTestAnswer = (questionIndex, value) => {
-    setTestResults((prevResults) => ({
-      ...prevResults,
-      [filteredQuestions[questionIndex]._id]: value // Savol ID'si bilan javobni saqlash
-    }));
-  };
-  const handleSubmitTest = async () => {
-    // **1️⃣ TestQuestionTwo natijalarini formatlash**
-    const formattedTestResults = Object.keys(testResults).map((questionId) => ({
-      questionId,
-      answer: testResults[questionId],
-    }));
+  // Сохранение данных в localStorage
+  localStorage.setItem("submittedTestData", JSON.stringify(payload));
 
-    // **2️⃣ TestQuestionThree natijalarini formatlash (Belbin testi)**
-    // **2️⃣ TestQuestionThree natijalarini formatlash (Belbin testi)**
-    const formattedTestResultsThree = Object.entries(testResultsThree).map(([questionId, answer]) => ({
-      questionId: questionId.trim(), // ✅ ID ning bo‘sh joylarini olib tashlash
-      answer: answer.trim(), // ✅ Javob matnini tekislash
-    }));
+  console.log("🟢 Отправляемые данные:", payload);
 
+  try {
+    // Сохранение результатов теста в базе данных
+    const response = await axios.post("https://farxunda-khadji.uz/api/submit-test", payload);
 
-    const payload = {
-      email,
-      password,
-      name: additionalInfo.name,
-      age: additionalInfo.age,
-      gender: additionalInfo.gender,
-      companyName: additionalInfo.companyName,
-      region: additionalInfo.region,
-      selectedID: additionalInfo.selectedID,
-      testResult: formattedTestResults, // ✅ TestQuestionTwo natijalari
-      testResultThree: formattedTestResultsThree, // ✅ TestQuestionThree (Belbin) natijalari
-      idName: idName,
-    };
+    if (response.data.message) {
+      console.log("🟢 Тест успешно сохранен");
 
-    // **3️⃣ Ma'lumotlarni localStorage'ga saqlash**
-    localStorage.setItem("submittedTestData", JSON.stringify(payload));
+      // Обработка результатов TestQuestionTwo
+      const calculationResponseTwo = await axios.post("https://farxunda-khadji.uz/api/test-question-two/calculate-results", {
+        email,
+        answers: formattedTestResults,
+      });
 
-    console.log("🟢 Yuborilayotgan ma'lumotlar:", payload);
-
-    try {
-      // **4️⃣ Test natijalarini bazaga saqlash**
-      const response = await axios.post("http://localhost:4000/api/submit-test", payload);
-
-      if (response.data.message) {
-        console.log("🟢 Test muvaffaqiyatli saqlandi");
-
-        // **5️⃣ TestQuestionTwo natijalarini hisoblash**
-        const calculationResponseTwo = await axios.post("http://localhost:4000/api/test-question-two/calculate-results", {
-          email,
-          answers: formattedTestResults,
-        });
-
-        if (calculationResponseTwo.data.success) {
-          console.log("🟢 TestQuestionTwo natijalari oborobotka qilindi");
-        } else {
-          console.warn("⚠️ TestQuestionTwo oborobotka vaqtida xatolik yuz berdi:", calculationResponseTwo.data.message);
-        }
-
-        // **6️⃣ TestQuestionThree natijalarini hisoblash (Belbin testi)**
-        const calculationResponseThree = await axios.post("http://localhost:4000/api/test-question-three/calculate-results", {
-          email,
-          answers: formattedTestResultsThree,
-        });
-
-        if (calculationResponseThree.data.success) {
-          console.log("🟢 TestQuestionThree natijalari oborobotka qilindi");
-        } else {
-          console.warn("⚠️ TestQuestionThree oborobotka vaqtida xatolik yuz berdi:", calculationResponseThree.data.message);
-        }
-
-        // **7️⃣ Userga ogohlantirish**
-        setAlertData({ type: "success", message: "Тест успешно отправлен. Ваши результаты будут обработаны." });
-
-        setTimeout(() => {
-          // window.location.href = "http://localhost:3000";
-        }, 3000);
+      if (calculationResponseTwo.data.success) {
+        console.log("🟢 Результаты TestQuestionTwo обработаны");
       } else {
-        setAlertData({ type: "error", message: "Ошибка при отправке теста. Попробуйте еще раз." });
+        console.warn("⚠️ Ошибка при обработке TestQuestionTwo:", calculationResponseTwo.data.message);
       }
-    } catch (error) {
-      console.error("🔴 Serverga yuborishda xatolik:", error);
-      setAlertData({ type: "error", message: "Произошла ошибка при отправке теста. Попробуйте еще раз." });
+
+      // Обработка результатов TestQuestionThree (Белбин тест)
+      const calculationResponseThree = await axios.post("https://farxunda-khadji.uz/api/test-question-three/calculate-results", {
+        email,
+        answers: formattedTestResultsThree,
+      });
+
+      if (calculationResponseThree.data.success) {
+        console.log("🟢 Результаты TestQuestionThree обработаны");
+      } else {
+        console.warn("⚠️ Ошибка при обработке TestQuestionThree:", calculationResponseThree.data.message);
+      }
+
+      // Уведомление пользователя об успешной отправке теста
+      setAlertData({ type: "success", message: "Тест успешно отправлен. Ваши результаты будут обработаны." });
+
+      setTimeout(() => {
+        // window.location.href = "http://localhost:3000";
+      }, 3000);
+    } else {
+      setAlertData({ type: "error", message: "Ошибка при отправке теста. Попробуйте еще раз." });
     }
-  };
+  } catch (error) {
+    console.error("🔴 Ошибка при отправке данных:", error);
+    setAlertData({ type: "error", message: "Произошла ошибка при отправке теста. Попробуйте еще раз." });
+  }
+};
 
 
 
