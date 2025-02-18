@@ -101,16 +101,16 @@ const RegisterVerify = () => {
   // Handle user registration
   const handleRegister = async () => {
     try {
-      const response = await axios.post("https://farxunda-khadji.uz/api/register", { email, password });
-      if (response.data.success) {
-        alert("Na вашу почту отправлен ID. Пожалуйста, подтвердите.");
-        setIsRegistered(true);
-      }
+        const response = await axios.post("https://farxunda-khadji.uz/api/register", { email, password });
+        if (response.data.success) {
+            setIsRegistered(true); // Email jo'natish yo'q, bevosita keyingi bosqichga o'tadi
+        }
     } catch (error) {
-      console.error(error);
-      alert("Произошла ошибка при регистрации.");
+        console.error(error);
+        alert("Произошла ошибка при регистрации.");
     }
-  };
+};
+
 
   // Handle ID verification
   const handleVerifyID = async () => {
@@ -262,147 +262,68 @@ const RegisterVerify = () => {
 
   return (
     <Box sx={{ maxWidth: 500, mx: "auto", mt: 5, p: 3, border: "1px solid #ccc", borderRadius: 2 }}>
+  {!isRegistered && !testStarted && (
+    <>
+      <Typography variant="h6" mb={2}>Регистрация</Typography>
+      <TextField
+        fullWidth
+        label="Email"
+        variant="outlined"
+        value={email}
+        onChange={(e) => setEmail(e.target.value)}
+        sx={{ mb: 2 }}
+      />
+      <TextField
+        fullWidth
+        label="Пароль"
+        variant="outlined"
+        type="password"
+        value={password}
+        onChange={(e) => setPassword(e.target.value)}
+        sx={{ mb: 2 }}
+      />
+      <Button variant="contained" onClick={handleRegister} sx={{ width: "100%" }}>
+        Зарегистрироваться
+      </Button>
+    </>
+  )}
 
-      <Modal open={openModal} onClose={() => { }} disableBackdropClick disableEscapeKeyDown>
-        <Box
-          sx={{
-            p: 4,
-            bgcolor: "background.paper",
-            borderRadius: 2,
-            maxWidth: 400,
-            minWidth: 400, // Modalning kengligini o'zgarmas qilish uchun
-            minHeight: 200, // Modalning balandligini minimal qilish uchun
-            position: "absolute",
-            top: "30%",
-            left: "50%",
-            transform: "translate(-50%, -50%)",
-            boxShadow: 24,
-            display: "flex",
-            flexDirection: "column",
-            justifyContent: "space-between",
-          }}
-        >
-          <Typography variant="h6" mb={2}>Проверка ID имени</Typography>
-          <TextField
-            label="ID Name"
-            variant="outlined"
-            fullWidth
-            value={idName}
-            onChange={(e) => setIdName(e.target.value)}
-            margin="normal"
-          />
+  {/* ID tasdiqlash bosqichi olib tashlandi */}
 
-          {/* Xabarni joylashtirish */}
-          <Box sx={{ minHeight: 50, mb: 2 }}>
-            {message && (
-              <Alert severity={message.includes("Success") ? "success" : "error"}>
-                {message.includes("Success") ? "Успех" : "Ошибка"}
-              </Alert>
-            )}
-          </Box>
-
-          <Button
-            variant="contained"
-            onClick={handleVerify}
-            fullWidth
-            disabled={isLoading}
-          >
-            {isLoading ? "Проверка..." : "Проверить"}
-          </Button>
-        </Box>
-      </Modal>
-      {!isRegistered && !testStarted && (
-        <>
-          <Typography variant="h6" mb={2}>
-            Регистрация
-          </Typography>
-          <TextField
-            fullWidth
-            label="Email"
-            variant="outlined"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            sx={{ mb: 2 }}
-          />
-          <TextField
-            fullWidth
-            label="Пароль"
-            variant="outlined"
-            type="password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            sx={{ mb: 2 }}
-          />
-          <Button variant="contained" onClick={handleRegister} sx={{ width: "100%" }}>
-            Зарегистрироваться
-          </Button>
-        </>
-      )}
-
-      {isRegistered && !idVerified && !testStarted && (
-        <>
-          <Typography variant="h6" mb={2}>
-            Подтверждение ID
-          </Typography>
-          <TextField
-            fullWidth
-            label="Введите ID"
-            variant="outlined"
-            value={inputID}
-            onChange={(e) => setInputID(e.target.value)}
-            sx={{ mb: 2 }}
-          />
-          <Button variant="contained" onClick={handleVerifyID} sx={{ width: "100%" }}>
-            Подтвердить
-          </Button>
-        </>
-      )}
-
-      {idVerified && !testStarted && (
-        <>
-          <Typography variant="h6" mb={2}>
-            Введите дополнительные данные
-          </Typography>
-
-        </>
-      )}
-
-      {idVerified && !testStarted && (
-        <>
-          <TextField
-            fullWidth
-            label="Имя"
-            name="name"
-            variant="outlined"
-            value={additionalInfo.name}
-            onChange={handleChange}
-            sx={{ mb: 2 }}
-          />
-          <TextField
-            fullWidth
-            label="Возраст"
-            name="age"
-            type="number"
-            variant="outlined"
-            value={additionalInfo.age}
-            onChange={handleChange}
-            sx={{ mb: 2 }}
-          />
-          <Select
-            fullWidth
-            label="Пол"
-            name="gender"
-            value={additionalInfo.gender}
-            onChange={handleChange}
-            sx={{ mb: 2 }}
-            displayEmpty
-          >
-            <MenuItem value="" disabled>
-              Выберите пол
-            </MenuItem>
-            <MenuItem value="Мужчина">Мужчина</MenuItem>
-            <MenuItem value="Женщина">Женщина</MenuItem>
-          </Select>
+  {isRegistered && !testStarted && (
+    <>
+      <Typography variant="h6" mb={2}>Введите дополнительные данные</Typography>
+      <TextField
+        fullWidth
+        label="Имя"
+        name="name"
+        variant="outlined"
+        value={additionalInfo.name}
+        onChange={handleChange}
+        sx={{ mb: 2 }}
+      />
+      <TextField
+        fullWidth
+        label="Возраст"
+        name="age"
+        type="number"
+        variant="outlined"
+        value={additionalInfo.age}
+        onChange={handleChange}
+        sx={{ mb: 2 }}
+      />
+      <Select
+        fullWidth
+        name="gender"
+        value={additionalInfo.gender}
+        onChange={handleChange}
+        sx={{ mb: 2 }}
+        displayEmpty
+      >
+        <MenuItem value="" disabled>Выберите пол</MenuItem>
+        <MenuItem value="Мужчина">Мужчина</MenuItem>
+        <MenuItem value="Женщина">Женщина</MenuItem>
+      </Select>
 
           <TextField
             fullWidth
